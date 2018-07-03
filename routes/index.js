@@ -495,10 +495,45 @@ router.post('/join',  function (req, res, next) {
                                                         // add spillovers
                                                         if (results.length === 1 && a !==null && b !== null && c !== null){
                                                           //check for null values
-                                                          db.query('SELECT * FROM starter WHERE sponsor = ? and a = ? or b = ? or c = ?', [sponId, null, null], function(err, results, fields){
+                                                          db.query('SELECT * FROM starter WHERE user = ?', [sponId], function(err, results, fields){
                                                             if (err) throw err;
                                                             console.log('sponId is' + results);
-                                                            res.render('join');
+                                                            if ( results.length  ===  1){
+                                                           		var legs = {
+                                                            		sponsor: results.sponsor,
+                                                            		a : 	results[0].a,
+                                                            		b : 	results[0].b,
+                                                            		c: 	results[0].c,
+                                                            	}
+                                                            }
+                                                            db.query('SELECT user FROM starter WHERE sponsor = ? and sponsor  = ? and sponsor  = ? and sponsor  =  and a  = ? or b = ? or c =  ?', [sponId, legs.a, legs.b, legs.c, null, null, null], function(err, results, fields){
+                                                            	if (err) throw err;
+																var lastNull  = results;
+																//get each of the last null using for loop
+																for ( var i = 0, i < lastNull, i++ );
+																console.log( i++ );
+																if(results.length > 1){
+																	db.query('SELECT user FROM starter WHERE not a  = ? or not b = ? or not c =  ? and user  = ?', [ null, null, null, lastNull], function(err, results, fields){
+                                                            			if (err) throw err;
+                                                            			if( results.length  === 1 ){
+                                                            			//get the results
+																			var onlyNullUser = results[0];
+																			//select the user
+																			db.query('SELECT * FROM starter WHERE  a  = ? or b = ? or c =  ? and user  = ?', [ null, null, null, onlyNullUser], function(err, results, fields){
+                                                            					if (err) throw err;
+                                                            					var only  = {
+                                                            						a: results[0].a,
+																					b: results[0].b,
+																					c: results[0].c
+                                                            					} 
+																				if(only.a === null)                                     			
+       																			//inserts into the valid null value
+																			});
+                                                            			}
+																	});
+																}
+                                                            	res.render('join');
+															});
                                                           }); 
                                                         }
                                                       });
