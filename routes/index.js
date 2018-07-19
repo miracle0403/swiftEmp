@@ -361,7 +361,8 @@ router.post('/join',  function (req, res, next) {
           console.log('the pin or serial number does not exist');
           res.render('join', {title: 'MATRIX ENTRANCE UNSUSSESSFUL!'})
         }else{
-          var user = results[0].user_id;
+          for( var i = 0; i < results.length; i++ );
+          var user = results[i].user_id;
           console.log(user); 
           //make sure no one has used the pin before
           if(user !== null){
@@ -547,7 +548,7 @@ router.post('/join',  function (req, res, next) {
                                           });  });
                                       }
                                     });
-                                  });
+                                  } );
                                 });
                               });
                             });

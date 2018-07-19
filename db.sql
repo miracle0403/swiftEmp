@@ -4,12 +4,23 @@ CREATE TABLE `company` (
 	`date` DATETIME NOT NULL
 )
 COLLATE='latin1_swedish_ci'
-ENGINE=InnoDB
+ENGINE=InnoDB()
 ;
 
 CREATE TABLE `countries_supported` (
 	`code` INT(11) NOT NULL,
 	`name` TEXT NOT NULL
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=InnoDB
+;
+
+CREATE TABLE `prestarter`(
+	`matrix_id` INT(11) NOT NULL,
+	`sponsor` INT(11) NOT NULL,
+	`user` INT(11) NOT NULL,
+	`lft` INT(11) NOT NULL,
+	`rgt` INT(11) NOT NULL
 )
 COLLATE='latin1_swedish_ci'
 ENGINE=InnoDB
