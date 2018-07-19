@@ -402,155 +402,148 @@ router.post('/join',  function (req, res, next) {
                           console.log('the paid value is ' + paid);
                           //if sponsor is paid
                           if(paid == "yes"){ 
-                            db.query('INSERT INTO pre_starter (sponsor, user) VALUES (?, ?)', [id, currentUser], function(error, results, fields){
-                              if (error) throw error;
-                              //add the user incentives table
-                              db.query('INSERT INTO incentives (user, company_fee) VALUES (?, ?)', [currentUser, 475], function(error, results, fields){
-                                if (error) throw error;
-                                //insert into company account
-                                db.query('INSERT INTO company (user, amount) VALUES (?, ?)', [currentUser, 475], function(error, results, fields){
-                                  if (error) throw error;
-                                  //add user to matrix count
-                                  db.query('INSERT INTO matrix_count (user) VALUES (?)', [currentUser], function(error, results, fields){
-                                    if (error) throw error;
-                                    //select his empty field
-                                    db.query('SELECT * FROM pre_starter WHERE user = ?', [id], function(err, results, fields){
-                                      if (err) throw err;
-                                      if(results.length===1 && results[0].a === null && results[0].b === null && results[0].c === null){
-                                      //start filling up field 
-                                        db.query('UPDATE pre_starter SET a = ? WHERE user = ?', [currentUser, id], function(err, results,fields){
+                            //get the nodes and check if the user has completed or if he is empty...
+                            db.query('SELECT * FROM prestarter WHERE user = ?', [id], function(err, results, fields){
+                              if (err) throw err;
+                              //assign variables to nodes
+                              var level  = {
+                                left: results[0].lft,
+                                right: results[0].rgt,
+                                user: results[0].user,
+                                sponsor: results[0].sponsor
+                              }
+                              if (right === left + 1){
+                                //add two to all greater nodes. search for them all.
+                                db.query('SELECT * FROM prestarter WHERE rgt > ?', [level.left], function(err, results, fields){
+                                  if (err) throw err;
+                                  //loop with for
+                                  for(var i = 0; i<results.length; i++);
+                                  // create the variables
+                                  var add1 = {
+                                    left: results[i].length,
+                                    right: results[i].length,
+                                    user: results[i].length
+                                    }
+                                    //check if the left side is less than the level.left.
+                                      if (add1.left > level.left){
+                                        //add two to it
+                                        add1.left += 2;
+                                        //update in the database
+                                        db.query('UPDATE starter SET lft = ? WHERE user = ?', [add1.left, add1.user], function(err, results,fields){
                                           if (err) throw err;
-                                          res.render('join', {title:'MATRIX ENTRANCE SUCCESSFUL'});
-                                        });
-                                      }// if b is empty
-                                      if(results.length === 1 && results[0].a !== null && results[0].b === null && results[0].c === null){
-                                        db.query('UPDATE pre_starter SET b = ? WHERE user = ?', [currentUser, id], function(err, results,fields){
-                                          if (err) throw err;
-                                          res.render('join', {title:'MATRIX ENTRANCE SUCCESSFUL'});
-                                        });
-                                      }// if c is empty
-                                      if(results.length === 1 && results[0].a !== null && results[0].b !== null && results[0].c === null){
-                                        db.query('UPDATE pre_starter SET c = ? WHERE user = ?', [currentUser, id], function(err, results,fields){
-                                          if (err) throw err;
-                                          //get the user of the a b and c
-                                          db.query('SELECT * FROM incentives WHERE user = ?', [id], function(err, results, fields){
+                                          //increase the immediate right by one.
+                                          level.right += 1;
+                                          db.query('UPDATE starter SET rgt = ? WHERE user = ?', [level.right, level.user], function(err, results,fields){
                                             if (err) throw err;
-                                          // select the incentives so it can be updated 
-                                          db.query('SELECT * FROM incentives WHERE user = ?', [id], function(err, results, fields){
-                                            if (err) throw err;
-                                            var incentives = {
-                                              commission: results[0].commission,
-                                              food: results[0].foodstuff,
-                                              company: results[0].company_fee
-                                            }
-                                            incentives.company += 2000;
-                                            incentives.food += 9100;
-                                            // update only thhe food and company in the incentives table
-                                            db.query('UPDATE incentives SET foodstuff = ? and company_fee = ? WHERE user = ?', [incentives.food, incentives.company, id], function(err, results,fields){
-                                              if (err) throw err;
-                                              // add the amount to the company table
-                                              db.query('INSERT INTO company (user, amount) VALUES (?, ?)', [id, 2000], function(error, results, fields){
-                                                if (error) throw error;
-                                                //select the sponsor of the sponsor of the current user
-                                                db.query('SELECT sponsor FROM user WHERE user_id = ?', [id], function(err, results, fields){
-                                                  if (err) throw err;
-                                                  var spon = results[0].sponsor;
-                                                  //get the user id
-                                                  db.query('SELECT user_id FROM user WHERE username = ?', [spon], function(err, results, fields){
-                                                    if (err) throw err;
-                                                    var sponId = results[0].user_id;
-                                                    //update the referral bonus
-                                                    db.query('SELECT * FROM incentives WHERE user = ?', [sponId], function(err, results, fields){
-                                                      if (err) throw err;
-                                                      var commission = results[0].commission;
-                                                    //insert into the starter tree
-                                                    db.query('INSERT INTO starter_tree (user, sponsor) VALUES (?, ?)', [id, sponId], function(error, results, fields){
-                                                      if (error) throw error;
-                                                      // look for where to enter the user in the starter matrix
-                                                      //select to know if the direct space is empty
-                                                      db.query('SELECT * FROM starter WHERE user = ?', [sponId], function(err, results, fields){
-                                                        if (err) throw err;
-                                                        if (results.length === 1 && a===null && b === null && c === null){
-                                                          //inserts into A
-                                                          db.query('UPDATE starter SET a = ? WHERE user = ?', [id, sponId], function(err, results,fields){
-                                                            if (err) throw err;
-                                                            res.render('join', {title: 'MATRIX SUCCESSFUL'});
-                                                          });
-                                                        }
-                                                        // check for b
-                                                        if (results.length === 1 && a !==null && b === null && c === null){
-                                                          //inserts into B
-                                                          db.query('UPDATE starter SET b = ? WHERE user = ?', [id, sponId], function(err, results,fields){
-                                                            if (err) throw err;
-                                                            res.render('join', {title: 'MATRIX SUCCESSFUL'});
-                                                          });
-                                                        }
-                                                        // check for c
-                                                        if (results.length === 1 && a !==null && b !== null && c === null){
-                                                        //inserts into C
-                                                          db.query('UPDATE starter SET c = ? WHERE user = ?', [id, sponId], function(err, results,fields){
-                                                            if (err) throw err;
-                                                            res.render('join', {title: 'MATRIX SUCCESSFUL'});
-                                                          });
-                                                        }
-                                                        // add spillovers
-                                                        if (results.length === 1 && a !==null && b !== null && c !== null){
-                                                          //check for null values
-                                                          db.query('SELECT * FROM starter WHERE user = ?', [sponId], function(err, results, fields){
-                                                            if (err) throw err;
-                                                            console.log('sponId is' + results);
-                                                            if ( results.length  ===  1){
-                                                           		var legs = {
-                                                            		sponsor: results.sponsor,
-                                                            		a : 	results[0].a,
-                                                            		b : 	results[0].b,
-                                                            		c: 	results[0].c,
-                                                            	}
-                                                            }
-                                                            db.query('SELECT user FROM starter WHERE sponsor = ? and sponsor  = ? and sponsor  = ? and sponsor  =  and a  = ? or b = ? or c =  ?', [sponId, legs.a, legs.b, legs.c, null, null, null], function(err, results, fields){
-                                                            	if (err) throw err;
-																var lastNull  = results;
-																//get each of the last null using for loop
-																for ( var i = 0, i < lastNull, i++ );
-																console.log( i++ );
-																if(results.length > 1){
-																	db.query('SELECT user FROM starter WHERE not a  = ? or not b = ? or not c =  ? and user  = ?', [ null, null, null, lastNull], function(err, results, fields){
-                                                            			if (err) throw err;
-                                                            			if( results.length  === 1 ){
-                                                            			//get the results
-																			var onlyNullUser = results[0];
-																			//select the user
-																			db.query('SELECT * FROM starter WHERE  a  = ? or b = ? or c =  ? and user  = ?', [ null, null, null, onlyNullUser], function(err, results, fields){
-                                                            					if (err) throw err;
-                                                            					var only  = {
-                                                            						a: results[0].a,
-																					b: results[0].b,
-																					c: results[0].c
-                                                            					} 
-																				if(only.a === null)                                     			
-       																			//inserts into the valid null value
-																			});
-                                                            			}
-																	});
-																}
-                                                            	res.render('join');
-															});
-                                                          }); 
-                                                        }
-                                                      });
-                                                    });
-                                                    });
-                                                  });
-                                                });
-                                              });
+                                            //insert the user in the matrix
+                                            db.query('INSERT INTO prestarter (sponsor, user, lft, rgt) VALUES (?, ?)', [id, currentUser, left.level + 1, left.level + 2], function(error, results, fields){
+                                              if (error) throw error;
                                             });
                                           });
-                                          });  });
+                                        });
+                                      }
+                                      //if the right is greater
+                                      if(add1.right > level.left){
+                                        //add two to it
+                                        add1.right += 2;
+                                        //update in the database
+                                        db.query('UPDATE starter SET rgt = ? WHERE user = ?', [add1.right, add1.user], function(err, results,fields){
+                                          if (err) throw err;
+                                          //increase the immediate right by one.
+                                          level.right += 1;
+                                          db.query('UPDATE starter SET rgt = ? WHERE user = ?', [level.right, level.user], function(err, results,fields){
+                                            if (err) throw err;
+                                            //insert the user in the matrix
+                                            db.query('INSERT INTO prestarter (sponsor, user, lft, rgt) VALUES (?, ?)', [id, currentUser, left.level + 1, left.level + 2], function(error, results, fields){
+                                              if (error) throw error;
+                                            });
+                                          });
+                                        });
                                       }
                                     });
-                                  } );
-                                });
-                              });
+                                  }
+                              //if the person has two people
+                              if (right === left + 3){
+                                //add two to all greater nodes. search for them all.
+                                db.query('SELECT * FROM prestarter WHERE rgt > ?', [level.left], function(err, results, fields){
+                                  if (err) throw err;
+                                  //loop with for
+                                  for(var i = 0; i <results.length; i++);
+                                  // create the variables
+                                  var add2 = {
+                                    left: results[i].length,
+                                    right: results[i].length,
+                                    user: results[i].length
+                                  }
+                                  //check if the left side is less than the level.left.
+                                  if (add2.left > level.left){
+                                    //add two to it
+                                    add2.left += 2;
+                                    //update in the database
+                                    db.query('UPDATE starter SET lft = ? WHERE user = ?', [add2.left, add2.user], function(err, results,fields){
+                                      if (err) throw err;
+                                      //insert the user in the matrix
+                                      db.query('INSERT INTO prestarter (sponsor, user, lft, rgt) VALUES (?, ?)', [id, currentUser, left.level + 1, left.level + 2], function(error, results, fields){
+                                        if (error) throw error;
+                                      });
+                                    });
+                                  }
+                                  //if the right is greater
+                                  if(add2.right > level.left){
+                                    //add two to it
+                                    add2.right += 2;
+                                    //update in the database
+                                    db.query('UPDATE starter SET rgt = ? WHERE user = ?', [add2.right, add2.user], function(err, results,fields){
+                                      if (err) throw err;
+                                      //insert the user in the matrix
+                                      db.query('INSERT INTO prestarter (sponsor, user, lft, rgt) VALUES (?, ?)', [id, currentUser, left.level + 1, left.level + 2], function(error, results, fields){
+                                        if (error) throw error;
+                                      });
+                                    });
+                                  }
+                                });    
+                              }
+                              //if the person has two people
+                              if (right === left + 5){
+                                //add two to all greater nodes. search for them all.
+                                db.query('SELECT * FROM prestarter WHERE rgt > ?', [level.left], function(err, results, fields){
+                                  if (err) throw err;
+                                  //loop with for
+                                  for(var i = 0; i <results.length; i++);
+                                  // create the variables
+                                  var add2 = {
+                                    left: results[i].length,
+                                    right: results[i].length,
+                                    user: results[i].length
+                                  }
+                                  //check if the left side is less than the level.left.
+                                  if (add2.left > level.left){
+                                    //add two to it
+                                    add2.left += 2;
+                                    //update in the database
+                                    db.query('UPDATE starter SET lft = ? WHERE user = ?', [add2.left, add2.user], function(err, results,fields){
+                                      if (err) throw err;
+                                      //insert the user in the matrix
+                                      db.query('INSERT INTO prestarter (sponsor, user, lft, rgt) VALUES (?, ?)', [id, currentUser, left.level + 1, left.level + 2], function(error, results, fields){
+                                        if (error) throw error;
+                                      });
+                                    });
+                                  }
+                                  //if the right is greater
+                                  if(add2.right > level.left){
+                                    //add two to it
+                                    add2.right += 2;
+                                    //update in the database
+                                    db.query('UPDATE starter SET rgt = ? WHERE user = ?', [add2.right, add2.user], function(err, results,fields){
+                                      if (err) throw err;
+                                      //insert the user in the matrix
+                                      db.query('INSERT INTO prestarter (sponsor, user, lft, rgt) VALUES (?, ?)', [id, currentUser, left.level + 1, left.level + 2], function(error, results, fields){
+                                        if (error) throw error;
+                                      });
+                                    });
+                                  }
+                                });    
+                              }    
                             });
                           }
                         });
